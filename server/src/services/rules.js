@@ -6,7 +6,9 @@ const RULES = {
   IN_PUBLICATION_PERIOD: 'IN_PUBLICATION_PERIOD',
   UNREPLIED_OBJECTIONS: 'UNREPLIED_OBJECTIONS',
   ALLOCATION_CHANGED: 'ALLOCATION_CHANGED',
-  ALREADY_SETTLED: 'ALREADY_SETTLED'
+  ALREADY_SETTLED: 'ALREADY_SETTLED',
+  CONTRACT_EXPIRED: 'CONTRACT_EXPIRED',
+  MISSING_CONTRACT_DEADLINE: 'MISSING_CONTRACT_DEADLINE'
 };
 
 const RULE_MESSAGES = {
@@ -14,7 +16,9 @@ const RULE_MESSAGES = {
   [RULES.IN_PUBLICATION_PERIOD]: '公示期内不能结转',
   [RULES.UNREPLIED_OBJECTIONS]: '存在未答复的异议，不能归档',
   [RULES.ALLOCATION_CHANGED]: '分摊规则已变更，需要重新公示',
-  [RULES.ALREADY_SETTLED]: '已结转收益只能查看不能编辑'
+  [RULES.ALREADY_SETTLED]: '已结转收益只能查看不能编辑',
+  [RULES.CONTRACT_EXPIRED]: '合同办理时限已过期，不能执行结转',
+  [RULES.MISSING_CONTRACT_DEADLINE]: '存在未设置办理时限的合同附件'
 };
 
 const checkContractExists = (projectId) => {
@@ -61,6 +65,17 @@ const isSettled = (projectId) => {
   return count > 0;
 };
 
+const hasExpiredContract = (projectId) => {
+  const now = dayjs().format('YYYY-MM-DD');
+  const contracts = prepare('SELECT handle_deadline FROM contracts WHERE project_id = ? AND handle_deadline IS NOT NULL').all(projectId);
+  return contracts.some(c => dayjs(c.handle_deadline).isBefore(now, 'day'));
+};
+
+const hasContractDeadline = (projectId) => {
+  const contracts = prepare('SELECT handle_deadline FROM contracts WHERE project_id = ?').all(projectId);
+  return contracts.length > 0 && contracts.every(c => c.handle_deadline !== null);
+};
+
 const validatePublication = (projectId) => {
   const errors = [];
   if (!checkContractExists(projectId)) {
@@ -76,6 +91,9 @@ const validateSettlement = (projectId) => {
   }
   if (isAllocationChanged(projectId)) {
     errors.push({ rule: RULES.ALLOCATION_CHANGED, message: RULE_MESSAGES[RULES.ALLOCATION_CHANGED] });
+  }
+  if (hasExpiredContract(projectId)) {
+    errors.push({ rule: RULES.CONTRACT_EXPIRED, message: RULE_MESSAGES[RULES.CONTRACT_EXPIRED] });
   }
   return errors;
 };
@@ -102,7 +120,9 @@ const getProjectStatus = (projectId) => {
     inPublicationPeriod: isInPublicationPeriod(projectId),
     hasUnrepliedObjections: hasUnrepliedObjections(projectId),
     allocationChanged: isAllocationChanged(projectId),
-    isSettled: isSettled(projectId)
+    isSettled: isSettled(projectId),
+    hasExpiredContract: hasExpiredContract(projectId),
+    hasContractDeadline: hasContractDeadline(projectId)
   };
 };
 
@@ -114,6 +134,8 @@ module.exports = {
   hasUnrepliedObjections,
   isAllocationChanged,
   isSettled,
+  hasExpiredContract,
+  hasContractDeadline,
   validatePublication,
   validateSettlement,
   validateArchive,

@@ -19,6 +19,8 @@ export interface RuleStatus {
   hasUnrepliedObjections: boolean;
   allocationChanged: boolean;
   isSettled: boolean;
+  hasExpiredContract: boolean;
+  hasContractDeadline: boolean;
 }
 
 export interface Contract {
@@ -30,6 +32,7 @@ export interface Contract {
   file_size: number;
   uploaded_by: string;
   uploaded_at: string;
+  handle_deadline?: string;
 }
 
 export interface AllocationDetail {

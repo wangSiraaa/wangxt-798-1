@@ -1,0 +1,148 @@
+{
+  "description": "物业公共收益公示系统 - 办理时限功能样例数据",
+  "version": "1.0.0",
+  "seed_date": "2026-06-06",
+  "projects": [
+    {
+      "id": "PROJ-2026-001",
+      "name": "小区地面停车位收益",
+      "type": "parking",
+      "amount": 125000.00,
+      "description": "2026年上半年小区地面公共停车位出租收益",
+      "status": "draft",
+      "contracts": [
+        {
+          "id": "CONT-2026-001",
+          "original_name": "停车位出租合同.pdf",
+          "handle_deadline": "2026-07-06",
+          "deadline_status": "valid",
+          "days_remaining": 30
+        }
+      ],
+      "rule_status": {
+        "hasContract": true,
+        "hasContractDeadline": true,
+        "hasExpiredContract": false,
+        "inPublicationPeriod": false,
+        "canSettle": false,
+        "canPublish": true
+      }
+    },
+    {
+      "id": "PROJ-2026-002",
+      "name": "电梯广告位收益",
+      "type": "advertisement",
+      "amount": 86000.00,
+      "description": "小区电梯轿厢广告位出租收益",
+      "status": "draft",
+      "contracts": [
+        {
+          "id": "CONT-2026-002",
+          "original_name": "电梯广告合同.pdf",
+          "handle_deadline": "2026-06-01",
+          "deadline_status": "expired",
+          "days_overdue": 5
+        }
+      ],
+      "rule_status": {
+        "hasContract": true,
+        "hasContractDeadline": true,
+        "hasExpiredContract": true,
+        "inPublicationPeriod": false,
+        "canSettle": false,
+        "canPublish": true,
+        "settle_block_reason": "合同办理时限已过期"
+      }
+    },
+    {
+      "id": "PROJ-2026-003",
+      "name": "小区公共区域摊位收益",
+      "type": "booth",
+      "amount": 32000.00,
+      "description": "小区公共区域临时摊位出租收益",
+      "status": "published",
+      "publication": {
+        "title": "小区公共区域摊位收益公示",
+        "start_date": "2026-06-06",
+        "end_date": "2026-06-13",
+        "period_days": 7
+      },
+      "contracts": [
+        {
+          "id": "CONT-2026-003",
+          "original_name": "摊位出租合同.pdf",
+          "handle_deadline": null,
+          "deadline_status": "not_set"
+        }
+      ],
+      "rule_status": {
+        "hasContract": true,
+        "hasContractDeadline": false,
+        "hasExpiredContract": false,
+        "inPublicationPeriod": true,
+        "canSettle": false,
+        "canPublish": false,
+        "settle_block_reason": "公示期内不能结转"
+      },
+      "objections": [
+        {
+          "id": "OBJ-2026-001",
+          "owner_name": "业主G",
+          "contact": "13800138000",
+          "content": "分摊比例有疑问，我们单元的面积好像算少了",
+          "status": "pending"
+        }
+      ]
+    }
+  ],
+  "business_rules": {
+    "handle_deadline": {
+      "description": "合同办理时限校验规则",
+      "check_points": [
+        "合同附件必须设置办理时限",
+        "办理时限已过期的合同不能执行结转",
+        "办理时限状态在列表和详情页展示",
+        "过期合同在列表中红色高亮显示"
+      ]
+    },
+    "publication_period": {
+      "description": "公示期校验规则（保留原限制）",
+      "check_points": [
+        "公示期内不能执行结转操作",
+        "公示期内结转按钮禁用",
+        "结转确认弹窗显示公示期提示"
+      ]
+    }
+  },
+  "test_scenarios": [
+    {
+      "scenario": "办理时限有效 - 可正常操作",
+      "project_id": "PROJ-2026-001",
+      "expected_behavior": [
+        "合同列表中办理时限显示为正常颜色",
+        "规则检查中'合同未过期'显示通过",
+        "发布公示按钮可用"
+      ]
+    },
+    {
+      "scenario": "办理时限已过期 - 阻止结转",
+      "project_id": "PROJ-2026-002",
+      "expected_behavior": [
+        "合同列表中办理时限红色显示并标注'已过期'",
+        "规则检查中'存在已过期合同'显示失败",
+        "结转按钮禁用",
+        "结转确认弹窗显示'合同办理时限已过期，不能执行结转'"
+      ]
+    },
+    {
+      "scenario": "公示期内 - 阻止结转（原限制保留）",
+      "project_id": "PROJ-2026-003",
+      "expected_behavior": [
+        "规则检查中'公示期内'显示警告",
+        "结转按钮禁用",
+        "结转确认弹窗显示'公示期内不能结转'",
+        "存在未设置办理时限的合同提示"
+      ]
+    }
+  ]
+}

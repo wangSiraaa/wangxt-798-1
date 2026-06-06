@@ -50,7 +50,8 @@ const initDatabase = async () => {
         file_path TEXT NOT NULL,
         file_size INTEGER,
         uploaded_by TEXT NOT NULL,
-        uploaded_at TEXT NOT NULL
+        uploaded_at TEXT NOT NULL,
+        handle_deadline TEXT
       );
     `);
 

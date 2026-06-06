@@ -111,7 +111,7 @@ export default function ProjectDetail() {
 
   const ruleStatus = selectedProject.ruleStatus;
   const canPublish = ruleStatus?.hasContract && selectedProject.status !== 'archived';
-  const canSettle = !ruleStatus?.inPublicationPeriod && !ruleStatus?.allocationChanged && selectedProject.status === 'published';
+  const canSettle = !ruleStatus?.inPublicationPeriod && !ruleStatus?.allocationChanged && !ruleStatus?.hasExpiredContract && selectedProject.status === 'published';
   const canArchive = !ruleStatus?.hasUnrepliedObjections && selectedProject.status === 'settled';
 
   return (
@@ -182,6 +182,14 @@ export default function ProjectDetail() {
           <div className={`rule-check ${ruleStatus?.hasContract ? 'pass' : 'fail'}`}>
             <span>{ruleStatus?.hasContract ? '✓' : '✗'}</span>
             合同附件已上传
+          </div>
+          <div className={`rule-check ${ruleStatus?.hasContractDeadline ? 'pass' : 'warning'}`}>
+            <span>{ruleStatus?.hasContractDeadline ? '✓' : '⚠'}</span>
+            {ruleStatus?.hasContractDeadline ? '办理时限已设置' : '存在未设置办理时限的合同'}
+          </div>
+          <div className={`rule-check ${ruleStatus?.hasExpiredContract ? 'fail' : 'pass'}`}>
+            <span>{ruleStatus?.hasExpiredContract ? '✗' : '✓'}</span>
+            {ruleStatus?.hasExpiredContract ? '存在已过期合同' : '合同未过期'}
           </div>
           <div className={`rule-check ${ruleStatus?.inPublicationPeriod ? 'warning' : 'pass'}`}>
             <span>{ruleStatus?.inPublicationPeriod ? '⏳' : '✓'}</span>
@@ -294,17 +302,31 @@ export default function ProjectDetail() {
                     <th>大小</th>
                     <th>上传人</th>
                     <th>上传时间</th>
+                    <th>办理时限</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {projectDetail?.contracts.map(c => (
-                    <tr key={c.id}>
-                      <td>📄 {c.original_name}</td>
-                      <td>{(c.file_size / 1024).toFixed(1)} KB</td>
-                      <td>{c.uploaded_by}</td>
-                      <td>{c.uploaded_at}</td>
-                    </tr>
-                  ))}
+                  {projectDetail?.contracts.map(c => {
+                    const isExpired = c.handle_deadline && new Date(c.handle_deadline) < new Date(new Date().toDateString());
+                    return (
+                      <tr key={c.id}>
+                        <td>📄 {c.original_name}</td>
+                        <td>{(c.file_size / 1024).toFixed(1)} KB</td>
+                        <td>{c.uploaded_by}</td>
+                        <td>{c.uploaded_at}</td>
+                        <td>
+                          {c.handle_deadline ? (
+                            <span style={{ color: isExpired ? '#ef4444' : '#374151', fontWeight: isExpired ? 500 : 400 }}>
+                              {isExpired && '⚠️ '}{c.handle_deadline}
+                              {isExpired && <span style={{ fontSize: '0.75rem', marginLeft: '0.25rem' }}>(已过期)</span>}
+                            </span>
+                          ) : (
+                            <span style={{ color: '#9ca3af' }}>未设置</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
@@ -569,7 +591,9 @@ export default function ProjectDetail() {
             <p>确定要执行结转操作吗？结转后项目将进入已结转状态，只能查看不能编辑。</p>
             {!canSettle && (
               <div className="alert alert-error" style={{ marginTop: '1rem' }}>
-                ⚠️ 公示期内或分摊规则已变更，无法结转！
+                ⚠️ {ruleStatus?.inPublicationPeriod ? '公示期内不能结转！' : 
+                    ruleStatus?.allocationChanged ? '分摊规则已变更，需要重新公示！' :
+                    ruleStatus?.hasExpiredContract ? '合同办理时限已过期，不能执行结转！' : '无法结转！'}
               </div>
             )}
             <div className="modal-actions">

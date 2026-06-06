@@ -63,8 +63,8 @@ const seedData = () => {
   const contract3Id = uuidv4();
 
   const insertContract = prepare(`
-    INSERT INTO contracts (id, project_id, filename, original_name, file_path, file_size, uploaded_by, uploaded_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO contracts (id, project_id, filename, original_name, file_path, file_size, uploaded_by, uploaded_at, handle_deadline)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   insertContract.run(
@@ -75,7 +75,21 @@ const seedData = () => {
     '/tmp/contract1.pdf',
     1024000,
     '财务_张三',
-    now
+    now,
+    dayjs().add(30, 'day').format('YYYY-MM-DD')
+  );
+
+  const contract2Id = uuidv4();
+  insertContract.run(
+    contract2Id,
+    project2Id,
+    `${uuidv4()}.pdf`,
+    '电梯广告合同.pdf',
+    '/tmp/contract2.pdf',
+    768000,
+    '财务_张三',
+    now,
+    dayjs().subtract(5, 'day').format('YYYY-MM-DD')
   );
 
   insertContract.run(
@@ -86,7 +100,8 @@ const seedData = () => {
     '/tmp/contract3.pdf',
     512000,
     '财务_李四',
-    now
+    now,
+    null
   );
 
   const insertAllocation = prepare(`
@@ -157,15 +172,18 @@ const seedData = () => {
 
   console.log('种子数据插入完成！');
   console.log(`- 收益项目: 3个`);
-  console.log(`- 合同附件: 2个（项目2缺失附件）`);
+  console.log(`- 合同附件: 3个`);
+  console.log(`  - 项目1: 办理时限30天后（有效）`);
+  console.log(`  - 项目2: 办理时限5天前（已过期）`);
+  console.log(`  - 项目3: 未设置办理时限`);
   console.log(`- 分摊明细: 12条`);
   console.log(`- 公示记录: 1个（项目3，公示期内）`);
   console.log(`- 异议记录: 1个（待答复）`);
   console.log('');
-  console.log('项目ID参考:');
-  console.log(`  项目1(有附件-草稿): ${project1Id}`);
-  console.log(`  项目2(无附件-草稿): ${project2Id}`);
-  console.log(`  项目3(公示期内-有异议): ${project3Id}`);
+  console.log('业务编号参考:');
+  console.log(`  项目1(草稿-办理时限有效): ${project1Id}`);
+  console.log(`  项目2(草稿-办理时限已过期): ${project2Id}`);
+  console.log(`  项目3(公示期内-未设置时限): ${project3Id}`);
 };
 
 const runSeed = async () => {

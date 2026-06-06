@@ -10,6 +10,7 @@
     "build": "cd client && npm run build",
     "start": "cd server && npm start",
     "seed": "cd server && npm run seed",
+    "seed:798": "node scripts/seed-798.js",
     "test:acceptance": "cd server && npm run test:acceptance",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down"

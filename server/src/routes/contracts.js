@@ -28,6 +28,7 @@ const getIp = (req) => req.ip || req.connection.remoteAddress;
 
 router.post('/:projectId', upload.single('file'), (req, res) => {
   const { projectId } = req.params;
+  const { handle_deadline } = req.body;
   const operator = getOperator(req);
   const now = dayjs().format('YYYY-MM-DD HH:mm:ss');
   
@@ -37,8 +38,8 @@ router.post('/:projectId', upload.single('file'), (req, res) => {
   
   const id = uuidv4();
   const stmt = prepare(`
-    INSERT INTO contracts (id, project_id, filename, original_name, file_path, file_size, uploaded_by, uploaded_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO contracts (id, project_id, filename, original_name, file_path, file_size, uploaded_by, uploaded_at, handle_deadline)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   stmt.run(
     id,
@@ -48,10 +49,15 @@ router.post('/:projectId', upload.single('file'), (req, res) => {
     req.file.path,
     req.file.size,
     operator,
-    now
+    now,
+    handle_deadline || null
   );
   
-  logOperation(projectId, 'upload_contract', operator, { filename: req.file.originalname, size: req.file.size }, getIp(req));
+  logOperation(projectId, 'upload_contract', operator, { 
+    filename: req.file.originalname, 
+    size: req.file.size,
+    handle_deadline: handle_deadline || null
+  }, getIp(req));
   
   res.status(201).json({
     id,
@@ -59,7 +65,8 @@ router.post('/:projectId', upload.single('file'), (req, res) => {
     original_name: req.file.originalname,
     filename: req.file.filename,
     file_size: req.file.size,
-    uploaded_at: now
+    uploaded_at: now,
+    handle_deadline: handle_deadline || null
   });
 });
 

@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { IncomeProject, ProjectDetail } from '../types';
+import type { IncomeProject, ProjectDetailResponse } from '../types';
 
 export const getProjects = async (status?: string, type?: string): Promise<IncomeProject[]> => {
   const params = new URLSearchParams();
@@ -9,7 +9,7 @@ export const getProjects = async (status?: string, type?: string): Promise<Incom
   return data;
 };
 
-export const getProjectDetail = async (id: string) => {
+export const getProjectDetail = async (id: string): Promise<ProjectDetailResponse> => {
   const { data } = await apiClient.get(`/projects/${id}`);
   return data;
 };

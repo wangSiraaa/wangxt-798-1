@@ -104,6 +104,17 @@ export interface RuleError {
   message: string;
 }
 
+export interface ProjectDetailResponse {
+  project: IncomeProject;
+  contracts: Contract[];
+  allocations: AllocationDetail[];
+  publications: Publication[];
+  objections: Objection[];
+  settlement: Settlement | null;
+  archive: Archive | null;
+  logs: OperationLog[];
+}
+
 export type ProjectType = 'parking' | 'advertisement' | 'booth' | 'other';
 
 export const PROJECT_TYPE_LABELS: Record<ProjectType, string> = {
